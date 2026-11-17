@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hazillion</title>
+<style>
+  :root{
+    --nyu:#57068C;      /* NYU purple */
+    --violet:#8900E1;   /* NYU violet */
+    --deep:#1d0233;
+    --ink:#f4ecfb;
+    --mute:#b99ad3;
+    --card:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.16);
+    --gold:#ffd84d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;color:var(--ink);
+    font-family:ui-rounded,"Avenir Next",system-ui,sans-serif;
+    background:
+      radial-gradient(900px 500px at 15% -10%, #7a1fc4 0%, transparent 60%),
+      radial-gradient(800px 600px at 100% 110%, #3a0561 0%, transparent 60%),
+      var(--deep);
+    display:flex;justify-content:center;
+  }
+  /* drifting haze */
+  body::before,body::after{
+    content:"";position:fixed;inset:-20%;pointer-events:none;
+    background:radial-gradient(closest-side, rgba(137,0,225,.22), transparent);
+    width:60vmax;height:60vmax;border-radius:50%;filter:blur(40px);
+    animation:drift 22s ease-in-out infinite alternate;
+  }
+  body::after{left:auto;right:-10%;top:40%;animation-duration:30s;animation-direction:alternate-reverse;opacity:.7}
+  @keyframes drift{to{transform:translate(18vw,12vh) scale(1.2)}}
+  main{width:100%;max-width:560px;padding:28px 20px 60px;position:relative;z-index:1}
+  h1{font-size:2.6rem;letter-spacing:-.03em;margin:0;text-align:center;font-weight:800}
+  h1 span{color:var(--violet);text-shadow:0 0 24px rgba(137,0,225,.8)}
+  .tag{text-align:center;color:var(--mute);margin:.3rem 0 1.6rem;font-size:.95rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;backdrop-filter:blur(8px)}
+  .btn{
+    appearance:none;border:0;cursor:pointer;font:inherit;font-weight:700;
+    background:linear-gradient(135deg,var(--violet),var(--nyu));color:#fff;
+    padding:14px 22px;border-radius:14px;width:100%;font-size:1.05rem;
+    box-shadow:0 8px 24px rgba(87,6,140,.5);transition:transform .1s;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none;color:var(--mute);margin-top:10px}
+  .hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.9rem;color:var(--mute)}
+  .alt{font-weight:800;color:var(--ink)}
+  .bar{height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--violet),#d9a6ff);transform-origin:left}
+  .q{font-size:1.5rem;line-height:1.25;font-weight:700;margin:0 0 18px}
+  input[type=text]{
+    width:100%;font:inherit;font-size:1.1rem;padding:14px 16px;border-radius:14px;
+    border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);outline:none;margin-bottom:12px
+  }
+  input[type=text]:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(137,0,225,.35)}
+  .res{text-align:center;padding:6px 0 4px}
+  .tier{font-size:1.9rem;font-weight:800;margin:.2rem 0}
+  .pts{font-size:1.1rem;color:var(--mute)}
+  .t100{color:var(--gold);text-shadow:0 0 24px rgba(255,216,77,.6)}
+  .t0{color:#ff8fa3}
+  .meta{margin-top:10px;font-size:.9rem;color:var(--mute)}
+  .banner{background:rgba(255,216,77,.12);border:1px solid rgba(255,216,77,.4);color:var(--gold);padding:10px 12px;border-radius:12px;font-size:.85rem;margin-bottom:14px}
+  .big{font-size:3.2rem;font-weight:800;text-align:center;margin:.2rem 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.95rem}
+  td{padding:7px 4px;border-bottom:1px solid var(--line)}
+  td:last-child{text-align:right;font-weight:700}
+  .toast{min-height:1.2em;margin:-2px 0 8px;font-size:.85rem;color:#ff9fb0;opacity:0}
+  .toast.show{animation:toast 2.2s ease forwards}
+  @keyframes toast{0%{opacity:0;transform:translateY(-3px)}10%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
+  .suggest{margin:-2px 0 12px;font-size:.95rem;color:var(--mute)}
+  .suggest button{display:inline;width:auto;margin:0 2px;padding:4px 12px;border-radius:10px;border:1px solid var(--violet);background:rgba(137,0,225,.3);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+  .bank{margin-top:18px;text-align:left}
+  .bank .intro{font-size:.85rem;color:var(--mute);margin:0 0 6px}
+  .bank details{border-top:1px solid var(--line);padding:12px 0}
+  .bank summary{cursor:pointer;font-weight:700;line-height:1.3}
+  .bank summary small{display:block;margin-top:4px;color:var(--mute);font-weight:400}
+  .btier{display:flex;justify-content:space-between;margin:14px 0 6px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+  .btier b{color:var(--c)}.btier span{color:var(--mute)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:.88rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06)}
+  .chip small{margin-left:6px;color:var(--mute)}
+  .chip.mine{border-color:var(--c);background:color-mix(in srgb,var(--c) 28%,transparent);font-weight:700}
+  .chip.mine::before{content:"★ "}
+  .hidden{display:none}
+  .tiers{display:grid;grid-template-columns:1fr auto;gap:4px 14px;font-size:.9rem;margin:14px 0 18px;color:var(--mute)}
+  .tiers b{color:var(--ink);text-align:right}
+
+  /* ---------- dive scene ---------- */
+  .dive{position:fixed;inset:0;z-index:50;overflow:hidden;display:flex;flex-direction:column;align-items:center;color:var(--ink)}
+  .dive.hidden{display:none}
+  .dive::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,transparent,#05000a 85%);pointer-events:none}
+  .beams{position:absolute;inset:0;pointer-events:none;background:
+    linear-gradient(100deg,transparent 18%,rgba(217,166,255,.08) 24%,transparent 34%),
+    linear-gradient(100deg,transparent 44%,rgba(217,166,255,.06) 52%,transparent 62%),
+    linear-gradient(100deg,transparent 70%,rgba(217,166,255,.07) 76%,transparent 86%)}
+  .mote{position:absolute;bottom:-10px;border-radius:50%;background:rgba(230,200,255,.5);animation:rise var(--d) linear var(--dl) infinite}
+  .streak{position:absolute;bottom:-100px;width:2px;border-radius:2px;background:linear-gradient(0deg,transparent,rgba(230,200,255,.75));opacity:0;transition:opacity .4s;animation:rise .9s linear var(--dl) infinite}
+  .dive.sinking .streak{opacity:.55}
+  @keyframes rise{to{transform:translateY(-115vh)}}
+  .dv-hud{position:relative;z-index:2;width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:flex-start;padding:16px 78px 0 16px;gap:10px}
+  .plate{background:rgba(20,2,38,.72);border:2px solid rgba(217,166,255,.35);border-radius:10px;padding:8px 12px;min-width:100px}
+  .plate small,.mid small{display:block;white-space:nowrap;font-size:.6rem;letter-spacing:.22em;color:var(--mute)}
+  .plate b{display:block;white-space:nowrap;font-family:ui-monospace,Menlo,monospace;font-size:1.2rem;color:#e6c8ff}
+  .plate.r{text-align:right}.plate.r b{color:#ff8fd0}
+  .mid{text-align:center;padding-top:6px}
+  .mid small{margin-top:6px}
+  .pips{display:flex;gap:4px;justify-content:center}
+  .pip{display:block;width:18px;height:18px;background:rgba(255,255,255,.08);border:2px solid rgba(217,166,255,.3)}
+  .pip.cur{animation:pulse .8s ease-in-out infinite}
+  @keyframes pulse{50%{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.6)}}
+  .ruler{position:absolute;right:0;top:0;bottom:0;width:64px;z-index:1;overflow:hidden;pointer-events:none;border-left:1px solid rgba(255,255,255,.1)}
+  .rtrack{position:absolute;left:0;right:0;top:0;will-change:transform}
+  .tick{position:absolute;right:0;width:10px;height:1px;background:rgba(255,255,255,.4)}
+  .tick.maj{width:18px;background:rgba(255,255,255,.75)}
+  .tick span{position:absolute;right:24px;top:-8px;font-size:.62rem;color:rgba(255,255,255,.6);white-space:nowrap}
+  .you{position:absolute;right:0;top:34%;transform:translateY(-50%);display:flex;align-items:center;gap:4px;color:#ff8fd0;font-size:.62rem;letter-spacing:.15em}
+  .you i{display:block;width:26px;height:2px;background:#ff8fd0}
+  .discwrap{position:relative;z-index:2;margin-top:5vh}
+  .dive.enter .discwrap{animation:dropIn .7s cubic-bezier(.2,.8,.2,1)}
+  @keyframes dropIn{from{transform:translateY(-32vh);opacity:0}}
+  .disc{display:block;width:130px;filter:drop-shadow(0 0 18px rgba(137,0,225,.9));animation:wobble 3.2s ease-in-out infinite}
+  .dive.sinking .disc{animation:wobbleFast .7s ease-in-out infinite}
+  @keyframes wobble{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+  @keyframes wobbleFast{0%,100%{transform:translateY(0) rotate(-14deg)}50%{transform:translateY(-3px) rotate(14deg)}}
+  .dv-out{position:relative;z-index:2;text-align:center;margin-top:6vh;padding:0 20px;max-width:640px}
+  .dv-out>*{opacity:0;transform:translateY(8px)}
+  .dv-out.show>*{animation:pop .45s ease forwards}
+  .dv-out.show>*:nth-child(2){animation-delay:.12s}
+  .dv-out.show>*:nth-child(3){animation-delay:.24s}
+  .dv-out.show>*:nth-child(4){animation-delay:.36s}
+  .dv-out.show>*:nth-child(5){animation-delay:.48s}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .dv-tier{font-size:clamp(1.5rem,6vw,3rem);font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+  @media (max-width:600px){.dv-out{padding:0 76px 0 16px}.dv-hud{padding-right:72px;gap:6px}.pip{width:15px;height:15px}}
+  .dv-ans{font-size:1.2rem;margin:10px 0}
+  .dv-gain{font-family:ui-monospace,Menlo,monospace;font-size:1.1rem;color:#d9a6ff;letter-spacing:.05em}
+  .dv-line{margin-top:10px;color:var(--mute);font-size:.95rem;letter-spacing:.04em}
+  .dv-note{margin-top:6px;color:var(--mute);font-size:.82rem;opacity:.8}
+  .dv-next{position:absolute;z-index:3;bottom:9vh;left:0;right:0;margin:0 auto;width:min(280px,80vw);opacity:0;pointer-events:none;transition:opacity .3s}
+  .dv-next.show{opacity:1;pointer-events:auto}
+  @media (prefers-reduced-motion: reduce){.mote,.streak,.disc,.discwrap{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Haze<span>illion</span></h1>
+  <p class="tag">Name the answer nobody else will. Purple Haze edition.</p>
+
+  <section id="start" class="card">
+    <div id="emptyWarn" class="banner hidden"></div>
+    <div class="tiers" id="tierList"></div>
+    <button class="btn" id="go">Start the dive</button>
+    <button class="btn ghost" id="endless" hidden>Endless mode</button>
+  </section>
+
+  <section id="play" class="card hidden">
+    <div class="hud"><span id="qn"></span><span>Depth <span class="alt" id="alt">0</span> m</span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <p class="q" id="qtext"></p>
+    <div id="entry">
+      <input type="text" id="ans" autocomplete="off" autocapitalize="words" placeholder="Type your answer">
+      <div id="toast" class="toast"></div>
+      <div id="suggest" class="suggest hidden">Did you mean <button type="button" id="sugBtn"></button>?</div>
+      <button class="btn" id="submit">Lock it in</button>
+      <button class="btn ghost" id="skip" hidden>Pass</button>
+    </div>
+  </section>
+
+  <section id="end" class="card hidden">
+    <div class="pts" style="text-align:center">You reached</div>
+    <div class="big" id="finalAlt"></div>
+    <div class="pts" style="text-align:center" id="finalSub"></div>
+    <table id="recap"></table>
+    <button class="btn" id="share">Copy result</button>
+    <button class="btn ghost" id="showBank">See every answer</button>
+    <button class="btn ghost" id="again">Play again</button>
+    <div id="bank" class="bank hidden"></div>
+  </section>
+</main>
+
+<div id="dive" class="dive hidden" role="status" aria-live="polite">
+  <div class="beams"></div>
+  <div id="motes"></div>
+  <div id="streaks"></div>
+  <div class="dv-hud">
+    <div class="plate"><small>DEPTH</small><b id="dvDepth">0 m</b></div>
+    <div class="mid"><div class="pips" id="dvPips"></div><small id="dvPrompt"></small></div>
+    <div class="plate r"><small>SCORE</small><b id="dvScore">0</b></div>
+  </div>
+  <div class="ruler"><div class="rtrack" id="rtrack"></div><div class="you"><span>YOU</span><i></i></div></div>
+  <div class="discwrap">
+    <svg class="disc" viewBox="0 0 120 50" aria-hidden="true">
+      <ellipse cx="60" cy="30" rx="54" ry="15" fill="#2a0446"/>
+      <ellipse cx="60" cy="26" rx="54" ry="15" fill="#8900E1"/>
+      <ellipse cx="60" cy="24" rx="40" ry="9"  fill="#a94cff"/>
+      <ellipse cx="60" cy="24" rx="26" ry="5"  fill="#57068C"/>
+      <path d="M10 22 Q60 6 110 22" stroke="#e6c8ff" stroke-width="2" fill="none" opacity=".55"/>
+    </svg>
+  </div>
+  <div class="dv-out" id="dvOut">
+    <div class="dv-tier" id="dvTier"></div>
+    <div class="dv-ans" id="dvAns"></div>
+    <div class="dv-gain" id="dvGain"></div>
+    <div class="dv-line" id="dvLine"></div>
+    <div class="dv-note" id="dvNote"></div>
+  </div>
+  <button class="btn dv-next" id="dvNext">Descend ▾</button>
+</div>
+
+<script>
+/* ============================================================
+   EDIT ME — everything about the game lives in this block.
+   ============================================================ */
+
+const SECONDS_PER_QUESTION = 25;   // set to 0 for no timer
+const METERS_PER_POINT = 10;
+
+// Scoring tiers (name + points). Rename/retune freely.
+const TIERS = {
+  fog:    { name: "Dishy",               pts: 10,  color: "#a99bd6", line: "Easy dump. Everyone's throwing this one." },
+  mist:   { name: "Inside Backhand",     pts: 25,  color: "#6fb2ff", line: "Solid. The whole line knows it." },
+  cloud:  { name: "Around Flick",        pts: 45,  color: "#4fe0c8", line: "Nice shape on it. Not many saw that coming." },
+  smoke:  { name: "Huck",                pts: 65,  color: "#ffa94d", line: "Sent deep. That's a good one." },
+  violet: { name: "Full-Field Hammer",   pts: 85,  color: "#ff6fb5", line: "Full-field hammer. Almost nobody goes there." },
+  one:    { name: "One in a Hazillion",  pts: 100, color: "#ffd84d", line: "You found the deepest cut." },
+};
+const NOT_LISTED = { name: "Turn", pts: 0, color: "#7d7396", line: "Turn. The disc stays where it is." };  // timer ran out
+
+/* Each question:
+     text     – the prompt
+     rule     – optional function(normalizedAnswer) → true/false. Answers failing it
+                score 0 even if listed (e.g. "first name starts with J").
+     answers  – list of { names:[accepted spellings…], tier:"fog|mist|cloud|smoke|violet|one", note:"optional blurb" }
+   Use lowercase in names; punctuation/case/extra spaces are ignored when matching.
+   Put the full name and common variants/last-name-only in `names`.            */
+const QUESTIONS = [
+  {
+    text: "Name a Haze player (past or present) whose first name starts with J",
+    answers: [
+      { names:["justin cheung","cheung"], tier:"fog" },
+      { names:["james xu","xu"], tier:"fog" },
+      { names:["joseph vadakkan","vadakkan"], tier:"fog" },
+      { names:["john fan","fan"], tier:"fog" },
+      { names:["jeremy sun","sun"], tier:"fog" },
+      { names:["jack tinker","tinker"], tier:"mist" },
+      { names:["jason li","li"], tier:"cloud" },
+      { names:["jake nemiroff","nemiroff"], tier:"smoke" },
+      { names:["jed higdon","higdon"], tier:"smoke" },
+      { names:["jesse gan","gan"], tier:"violet" },
+      { names:["jack gordon","gordon"], tier:"violet" },
+      { names:["jack mcgovern","mcgovern"], label:"Jack McGovern", tier:"violet" },
+      { names:["jacob bergstein","bergstein"], tier:"one" },
+    ],
+  },
+  {
+    // Built from Haze's full USAU schedule, 2024-2026 seasons (sanctioned events only).
+    // Tier = number of games played against them (more games = more common answer):
+    //   Dishy 6+ | Inside Backhand 4-5 | Around Flick 2-3 | Huck / Hammer 1 game
+    text: "Name a team Haze has played at a USAU-sanctioned tournament since January 1st, 2024",
+    answers: [
+      // Dishy: 6+ games
+      { names:["rutgers","rutgers university"],                     tier:"fog", note:"9 games over 3 seasons" },
+      { names:["columbia","columbia university"],                   tier:"fog", note:"9 games over 3 seasons" },
+      { names:["rowan","rowan university"],                         tier:"fog", note:"8 games" },
+      { names:["stony brook","suny stony brook","suny-stony brook","sbu","panic"], tier:"fog", note:"7 games" },
+      { names:["hofstra","hofstra university"],                     tier:"fog", note:"6 games" },
+      // Inside Backhand: 4-5 games
+      { names:["penn","upenn","pennsylvania","university of pennsylvania"], tier:"mist", note:"5 games" },
+      { names:["uconn","connecticut","university of connecticut"],  tier:"mist", note:"5 games" },
+      { names:["princeton","princeton university"],                 tier:"mist", note:"4 games" },
+      { names:["vassar","vassar college"],                          tier:"mist", note:"4 games" },
+      // Around Flick: 2-3 games
+      { names:["rit","rochester institute of technology"],          tier:"cloud", note:"3 games, once each season" },
+      { names:["yale","yale university"],                           tier:"cloud", note:"3 games" },
+      { names:["syracuse","syracuse university"],                   tier:"cloud", note:"2 games" },
+      { names:["albany","suny albany","suny-albany"],               tier:"cloud", note:"2 games" },
+      { names:["binghamton","suny binghamton","suny-binghamton","bing"], tier:"cloud", note:"2 games" },
+      { names:["delaware","university of delaware"],                tier:"cloud", note:"2 games" },
+      // Huck: one game, northeast / regional names
+      { names:["ottawa","university of ottawa"],                    tier:"smoke" },
+      { names:["cornell","cornell university"],                     tier:"smoke" },
+      { names:["buffalo","suny buffalo","suny-buffalo","ub"],       tier:"smoke" },
+      { names:["boston university","bu"],                           tier:"smoke" },
+      { names:["harvard","harvard university"],                     tier:"smoke" },
+      { names:["mit","massachusetts institute of technology"],      tier:"smoke" },
+      { names:["temple","temple university"],                       tier:"smoke" },
+      { names:["lehigh","lehigh university"],                       tier:"smoke" },
+      // Full-Field Hammer: one game, further-flung invite opponents
+      { names:["bates","bates college"],                            tier:"violet" },
+      { names:["williams","williams college"],                      tier:"violet" },
+      { names:["georgetown","georgetown university"],               tier:"violet" },
+      { names:["johns hopkins","jhu","hopkins"],                    tier:"violet" },
+      { names:["towson","towson university"],                       tier:"violet" },
+      { names:["suny cortland","suny-cortland","cortland"],         tier:"violet" },
+      { names:["west chester","west chester university"],           tier:"violet" },
+      { names:["george mason","gmu"],                               tier:"violet" },
+      { names:["west virginia","wvu","west virginia university"],   tier:"violet" },
+      { names:["vanderbilt","vandy"],                               tier:"violet" },
+      // One in a Hazillion
+      { names:["central connecticut","central connecticut state","ccsu"], tier:"one" },
+    ],
+  },
+  {
+    text: "Name a Haze coach (past or present)",
+    answers: [
+      { names:["matthias ling","ling"], tier:"fog" },
+      { names:["cara sieber","sieber"], tier:"fog" },
+      { names:["sadie jezierski","jezierski"], tier:"fog" },
+      { names:["liam haberfield","haberfield"], tier:"mist" },
+      { names:["joseph copeland","copeland"], tier:"mist" },
+      { names:["joanna maida","maida"], tier:"mist" },
+      { names:["tenzin choezin","choezin"], tier:"cloud" },
+      { names:["eric zhang","zhang"], tier:"cloud" },
+      { names:["jimmy leppert","leppert"], tier:"smoke" },
+      { names:["sam little","little"], tier:"smoke" },
+      { names:["max cohen","cohen"], tier:"smoke" },
+      { names:["michael lally","lally"], tier:"violet" },
+      { names:["jibran meiser","meiser"], tier:"violet" },
+      { names:["william katz","katz"], tier:"violet" },
+      { names:["andrew wilkes","wilkes"], tier:"one" },
+    ],
+  },
+  {
+    text: "Name an NYU captain (past or present)",
+    answers: [
+      { names:["pranav chivukula","chivukula"], tier:"fog" },
+      { names:["romeo hendel","hendel"], tier:"fog" },
+      { names:["andy shi","shi"], tier:"fog" },
+      { names:["harry xie","xie"], tier:"fog" },
+      { names:["gavin zhao","zhao"], tier:"fog" },
+      { names:["eddie kim","kim"], tier:"mist" },
+      { names:["alfardil alam","alam"], tier:"mist" },
+      { names:["rishi gupta","gupta"], tier:"cloud" },
+      { names:["jason li","li"], tier:"cloud" },
+      { names:["deven bender","bender"], tier:"smoke" },
+      { names:["chris bond","bond"], tier:"smoke" },
+      { names:["max cohen","cohen"], tier:"violet" },
+      { names:["jesse gan","gan"], tier:"violet" },
+      { names:["eric zhang","zhang"], tier:"violet" },
+      { names:["michael ji","ji"], tier:"one" },
+    ],
+  },
+  {
+    text: "Name a place (US state or country) that a current Haze player or coach is from",
+    answers: [
+      { names:["new york","ny","nyc"], tier:"fog" },
+      { names:["china","prc","peoples republic of china"], tier:"fog" },
+      { names:["united states","usa","us","u s a","america","the united states"], tier:"fog" },
+      { names:["new jersey","nj"], tier:"fog" },
+      { names:["massachusetts","mass","ma"], tier:"mist" },
+      { names:["canada"], tier:"mist" },
+      { names:["washington","washington state"], tier:"cloud" },
+      { names:["california","cali","ca"], tier:"smoke" },
+      { names:["connecticut","ct"], tier:"smoke" },
+      { names:["pennsylvania","penn","pa"], tier:"smoke" },
+      { names:["maryland","md"], tier:"smoke" },
+      { names:["illinois","il"], tier:"violet" },
+      { names:["ohio"], tier:"one" },
+    ],
+  },
+];
+
+/* ============================================================
+   Game engine — no need to touch below unless you want to.
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+                   .replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+
+// index answers once
+QUESTIONS.forEach(q => {
+  q.index = new Map();
+  q.answers.forEach(a => a.names.forEach(n => q.index.set(norm(n), a)));
+});
+
+// --- fuzzy matching (typo forgiveness) ---
+function lev(a, b){
+  const m = a.length, n = b.length;
+  let prev = Array.from({length:n+1}, (_,j)=>j);
+  for(let x=1; x<=m; x++){
+    const cur = [x];
+    for(let y=1; y<=n; y++){
+      cur[y] = Math.min(prev[y]+1, cur[y-1]+1, prev[y-1] + (a[x-1]===b[y-1]?0:1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+// how many typos we forgive, by length of the typed answer
+const allowedTypos = len => len < 4 ? 0 : len <= 6 ? 1 : len <= 11 ? 2 : 3;
+const SHOUT = { uconn:"UConn", rit:"RIT", mit:"MIT", ub:"UB", bu:"BU", gmu:"GMU", wvu:"WVU", jhu:"JHU", sbu:"SBU", ccsu:"CCSU", upenn:"UPenn", vandy:"Vandy", ny:"NY", nyc:"NYC", nj:"NJ", usa:"USA", us:"US", prc:"PRC", ma:"MA", ca:"CA", ct:"CT", pa:"PA", md:"MD", il:"IL" };
+const pretty = s => SHOUT[s] || s.replace(/\b\w/g, c => c.toUpperCase());
+
+function suggestionName(best){
+  const full = nameOf(best.ans);
+  if(full.toLowerCase().endsWith(" " + best.name)) return full;          // matched a last name
+  if(best.ans.label && norm(best.ans.label) === best.name) return best.ans.label;
+  return pretty(best.name);
+}
+
+// full, nicely written name for a bank entry (optional label overrides capitalisation, e.g. McGovern)
+function nameOf(a){ return a.label || pretty(a.names[0]); }
+
+// returns { tier, note, display, corrected } or null if nothing in the bank fits
+function score(q, raw){
+  const a = norm(raw);
+  if(!a) return null;
+  const fits = name => !q.rule || q.rule(name);
+
+  // exact match
+  const exact = q.index.get(a);
+  if(exact && fits(a)) return { tier: TIERS[exact.tier], note: exact.note || "", display: null, corrected: false, ans: exact };
+
+  // closest match within the typo allowance
+  const limit = allowedTypos(a.length);
+  if(!limit) return null;
+  let best = null, bestD = Infinity, tied = false;
+  for(const [name, ans] of q.index){
+    if(!fits(name)) continue;
+    const d = lev(a, name);
+    if(d > limit) continue;
+    if(d < bestD){ best = { name, ans }; bestD = d; tied = false; }
+    else if(d === bestD && ans !== best.ans){ tied = true; }
+  }
+  if(!best || tied) return null;   // nothing close, or two different answers equally close
+  return { tier: TIERS[best.ans.tier], note: best.ans.note || "", display: suggestionName(best), corrected: true, ans: best.ans };
+}
+
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+}
+
+// --- dive scene ---
+const PX_PER_M = 0.9;                      // ruler scale
+const MAX_DEPTH = QUESTIONS.length * 100 * METERS_PER_POINT;
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+let locked = false, skipAnim = false;
+
+(function buildScene(){
+  for(let n=0; n<34; n++){
+    const m = document.createElement("i"); m.className = "mote";
+    const sz = 2 + Math.random()*4;
+    m.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;--d:${8+Math.random()*10}s;--dl:-${Math.random()*14}s`;
+    $("motes").appendChild(m);
+  }
+  for(let n=0; n<14; n++){
+    const k = document.createElement("i"); k.className = "streak";
+    k.style.cssText = `left:${Math.random()*100}%;height:${40+Math.random()*70}px;--dl:-${Math.random()*0.9}s`;
+    $("streaks").appendChild(k);
+  }
+  for(let m=0; m<=MAX_DEPTH+400; m+=50){
+    const t = document.createElement("div");
+    t.className = "tick" + (m%100===0 ? " maj" : "");
+    t.style.top = (m*PX_PER_M)+"px";
+    if(m%100===0) t.innerHTML = `<span>${m}m</span>`;
+    $("rtrack").appendChild(t);
+  }
+})();
+
+const hex2 = h => [1,3,5].map(k => parseInt(h.slice(k,k+2),16));
+const mix = (a,b,t) => "rgb(" + hex2(a).map((v,k)=>Math.round(v+(hex2(b)[k]-v)*t)).join(",") + ")";
+const fmtM = v => Math.round(v).toLocaleString() + " m";
+
+function paint(depthM){
+  const t = Math.min(1, depthM / MAX_DEPTH);
+  const d = $("dive");
+  d.style.background = `linear-gradient(180deg,${mix("#7a22bd","#1d0233",t)},${mix("#37096a","#07010d",t)})`;
+  $("rtrack").style.transform = `translateY(${d.clientHeight*0.34 - depthM*PX_PER_M}px)`;
+}
+
+function paintPips(colorCurrent){
+  $("dvPips").innerHTML = QUESTIONS.map((_,k) => {
+    const l = log[k];
+    const done = l && (k < i || colorCurrent);
+    return `<i class="pip${k===i && !colorCurrent ? " cur" : ""}"` +
+           (done ? ` style="background:${l.tier.color};border-color:${l.tier.color}"` : "") + `></i>`;
+  }).join("");
+}
+
+function tween(from, to, dur, onFrame, done){
+  if(!dur || reduceMotion){ onFrame(to); done(); return; }
+  const t0 = performance.now(); skipAnim = false;
+  (function step(now){
+    const p = skipAnim ? 1 : Math.min(1, (now - t0) / dur);
+    onFrame(from + (to - from) * (1 - Math.pow(1-p, 3)));   // ease-out: fast drop, slow settle
+    p < 1 ? requestAnimationFrame(step) : done();
+  })(t0);
+}
+
+function runDive(r, shown){
+  const dive = $("dive"), M = METERS_PER_POINT;
+  const prev = total - r.tier.pts;
+  const last = i === QUESTIONS.length - 1;
+  dive.classList.remove("hidden");
+  dive.classList.remove("enter"); void dive.offsetWidth; dive.classList.add("enter");
+  $("dvOut").classList.remove("show"); $("dvNext").classList.remove("show");
+  $("dvNext").textContent = last ? "See results" : "Descend ▾";
+  $("dvPrompt").textContent = `PROMPT ${i+1} OF ${QUESTIONS.length}`;
+  $("dvDepth").textContent = fmtM(prev*M);
+  $("dvScore").textContent = prev;
+  paintPips(false);
+  paint(prev*M);
+  const sinks = r.tier.pts > 0;
+  dive.classList.toggle("sinking", sinks);
+  tween(prev*M, total*M, sinks ? 900 + r.tier.pts*14 : 500, v => {
+    paint(v); $("dvDepth").textContent = fmtM(v); $("dvScore").textContent = Math.round(v/M);
+  }, () => {
+    dive.classList.remove("sinking");
+    paintPips(true);
+    const tierEl = $("dvTier");
+    tierEl.textContent = r.tier.name;
+    tierEl.style.color = r.tier.color;
+    tierEl.style.textShadow = `0 0 24px ${r.tier.color}`;
+    $("dvAns").textContent = shown;
+    $("dvGain").textContent = sinks ? `+${r.tier.pts} PTS · sink ${r.tier.pts*M} m` : "+0 PTS · no meters gained";
+    $("dvLine").textContent = r.tier.line;
+    $("dvNote").textContent = r.note || "";
+    $("dvOut").classList.add("show");
+    setTimeout(() => { $("dvNext").classList.add("show"); $("dvNext").focus(); }, reduceMotion ? 0 : 650);
+  });
+}
+
+let i, total, log, timer, tLeft;
+
+// start screen
+$("tierList").innerHTML = Object.values(TIERS).map(t=>`<span>${t.name}</span><b>${t.pts}</b>`).join("");
+const empties = QUESTIONS.filter(q=>!q.answers.length).length;
+if(empties){
+  const w = $("emptyWarn"); w.classList.remove("hidden");
+  w.textContent = `${empties} of ${QUESTIONS.length} questions have no answers yet — they'll score 0 until you fill them in (see QUESTIONS in the file).`;
+}
+
+function show(id){ ["start","play","end"].forEach(s=>$(s).classList.toggle("hidden", s!==id)); }
+
+function begin(){
+  i = 0; total = 0; log = [];
+  show("play"); ask();
+}
+
+function ask(){
+  const q = QUESTIONS[i];
+  $("qn").textContent = `Question ${i+1} of ${QUESTIONS.length}`;
+  $("alt").textContent = total * METERS_PER_POINT;
+  $("qtext").textContent = q.text;
+  locked = false; $("ans").value = ""; $("entry").classList.remove("hidden"); $("suggest").classList.add("hidden");
+  $("toast").classList.remove("show"); $("toast").textContent = "";
+  $("skip").hidden = SECONDS_PER_QUESTION > 0;   // no timer = no way to Turn, so offer a Pass
+  $("ans").focus();
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timer);
+  const bar = $("bar");
+  if(!SECONDS_PER_QUESTION){ bar.style.transform="scaleX(1)"; return; }
+  const end = Date.now() + SECONDS_PER_QUESTION*1000;
+  timer = setInterval(()=>{
+    const left = Math.max(0, end - Date.now());
+    bar.style.transform = `scaleX(${left/(SECONDS_PER_QUESTION*1000)})`;
+    if(left<=0){ clearInterval(timer); lock(true); }
+  }, 50);
+}
+
+function lock(timedOut){
+  if(locked) return;
+  const q = QUESTIONS[i];
+  const raw = $("ans").value.trim();
+  let r;
+  if(timedOut){
+    // A Turn only happens when time runs out without an answer from the bank
+    r = { tier: NOT_LISTED, note:"", display: null, corrected: false };
+  } else {
+    if(!raw){ toast("Type an answer first"); return; }
+    r = score(q, raw);
+    if(!r){                                   // not in the bank: small notice, keep playing
+      toast("Not in the answer bank, keep trying");
+      $("ans").select();
+      return;
+    }
+    if(r.corrected){                          // close, not exact: ask, don't submit
+      $("sugBtn").textContent = r.display;
+      $("suggest").classList.remove("hidden");
+      return;
+    }
+  }
+  locked = true;
+  clearInterval(timer);
+  total += r.tier.pts;
+  const full = r.ans ? nameOf(r.ans) : null;       // last name / nickname typed -> show the full name
+  log.push({ q: q.text, raw: full || r.display || raw || "—", tier: r.tier, ans: r.ans || null });
+  $("alt").textContent = total * METERS_PER_POINT;
+  $("ans").blur();
+  const shown = timedOut ? "Time's up" : `“${full || raw}”`;
+  runDive(r, shown);
+}
+
+function finish(){
+  show("end");
+  const max = QUESTIONS.length*100;
+  $("finalAlt").textContent = (total*METERS_PER_POINT).toLocaleString()+" m";
+  $("finalSub").textContent = `${total} / ${max} points`;
+  renderBank();
+  $("bank").classList.add("hidden"); $("showBank").textContent = "See every answer";
+  $("recap").innerHTML = log.map((l,n)=>`<tr><td>${n+1}. ${escapeHtml(l.raw)}</td><td>${l.tier.name}</td></tr>`).join("");
+}
+
+function renderBank(){
+  $("bank").innerHTML = `<p class="intro">Every answer that scores, by tier. ★ marks the one you gave. Anything not listed isn't accepted.</p>` +
+    QUESTIONS.map((q,k) => {
+      const l = log[k], mine = l && l.ans;
+      const rows = Object.keys(TIERS).map(t => {
+        const items = q.answers.filter(a => a.tier === t);
+        if(!items.length) return "";
+        return `<div class="btier" style="--c:${TIERS[t].color}"><b>${TIERS[t].name}</b><span>${TIERS[t].pts} pts · ${items.length}</span></div>` +
+          `<div class="chips" style="--c:${TIERS[t].color}">` +
+          items.map(a => `<span class="chip${a===mine?" mine":""}">${escapeHtml(nameOf(a))}${a.note?`<small>${escapeHtml(a.note)}</small>`:""}</span>`).join("") + `</div>`;
+      }).join("");
+      return `<details open><summary>${escapeHtml(q.text)}<small>You: ${escapeHtml(l ? l.raw : "—")} · ${l ? l.tier.name : ""}</small></summary>${rows}</details>`;
+    }).join("");
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("dvNext").onclick = () => {
+  $("dive").classList.add("hidden");
+  i++; i < QUESTIONS.length ? ask() : finish();
+};
+$("dive").addEventListener("click", e => { if(e.target.id !== "dvNext") skipAnim = true; });   // tap to skip the sink
+$("sugBtn").onclick = () => {              // fills the box; the player still has to submit
+  $("ans").value = $("sugBtn").textContent;
+  $("suggest").classList.add("hidden");
+  $("ans").focus();
+};
+$("ans").addEventListener("input", () => $("suggest").classList.add("hidden"));
+$("go").onclick = begin;
+$("again").onclick = () => show("start");
+$("showBank").onclick = () => {
+  const open = $("bank").classList.toggle("hidden") === false;
+  $("showBank").textContent = open ? "Hide answers" : "See every answer";
+  if(open) $("bank").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+};
+$("submit").onclick = () => lock(false);
+$("skip").onclick = () => lock(true);
+$("ans").addEventListener("keydown", e => { if(e.key==="Enter") lock(false); });
+$("share").onclick = () => {
+  const lines = log.map(l => l.tier.pts===100?"🟣🟣🟣":l.tier.pts>=65?"🟣🟣":l.tier.pts>0?"🟣":"⚫").join("\n");
+  const txt = `Hazillion — ${total*METERS_PER_POINT} m\n${lines}`;
+  navigator.clipboard?.writeText(txt).then(()=>{ $("share").textContent="Copied!"; setTimeout(()=>$("share").textContent="Copy result",1500); });
+};
+</script>
+</body>
+</html>
